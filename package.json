@@ -1,0 +1,25 @@
+{
+  "name": "lab-08-back-end",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kuyang/lab-08-back-end.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kuyang/lab-08-back-end/issues"
+  },
+  "homepage": "https://github.com/kuyang/lab-08-back-end#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "superagent": "^4.0.0-beta.5",
+    "yelp-fusion": "^2.2.1"
+  }
+}
