@@ -1,17 +1,28 @@
 'use strict'
-
+//**** Setup enviroment ******
 require('dotenv').config();
 
 const cors = require('cors');
 const express = require('express');
 const superagent = require('superagent');
 const yelp = require('yelp-fusion');
-
 const app = express();
 
 const PORT = process.env.PORT||3000;
 
 app.use(cors())
+
+//**** NoSQL setup ***
+const mongoose = require('mongoose');
+mongoose.connect(`mongodb://${process.env.MONGODB_USER}:${process.env.MONGODB_PWD}@ds155653.mlab.com:55653/301demo`)
+const { Schema } = mongoose
+// set up to retrieve objects from the connection off mongoose and to check for error!!
+const db = mongoose.connection
+
+db.on('error', console.error.bind(console, 'db connection Error!!'))
+db.once('open', () => {
+    console.log('connection to db is open!')
+})
 
 //********* ROUTES ********
 app.get('/location',(request, response) => {
@@ -83,18 +94,46 @@ function HandleError(err){
 }
 
 //****** LOCATION *******
+// function getLocation(query){
+//     const url = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLEGEOCODE_API_KEY}&address=${query}`
+//     return superagent.get(url)
+//         .then(res => {
+//             return new Location(res.body.results[0].geometry.location.lat, res.body.results[0].geometry.location.lng)
+//         })
+// }
+// function Location(lat,lng){
+//     this.latitude = lat;
+//     this.longitude = lng;
+// }
+//** re-code for mongoose 
+let locationSchema = new Schema({
+    address: String,
+    latitude: Number,
+    longitude: Number,
+})
+// invoking a method to be pushed and stored in the db 
+let Location = mongoose.model('Location', locationSchema)
+
 function getLocation(query){
     const url = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLEGEOCODE_API_KEY}&address=${query}`
-    return superagent.get(url)
+    return Location.findOne({address: query})
         .then(res => {
-            return new Location(res.body.results[0].geometry.location.lat, res.body.results[0].geometry.location.lng)
+            if(res){
+                return res
+            } else {
+                return superagent.get(url)
+                    .then(res => {
+                        let currentLocation = new Location({
+                            address: query,
+                            latitude: res.body.results[0].geometry.location.lat,
+                            longitude: res.body.results[0].geometry.location.lng
+                        })
+                        currentLocation.save()
+                        return res
+                    })
+            }
         })
 }
-function Location(lat,lng){
-    this.latitude = lat;
-    this.longitude = lng;
-}
-
 
 //****** WEATHER ******
 function getWeather(request, response){
